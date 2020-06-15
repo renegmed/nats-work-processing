@@ -1,0 +1,98 @@
+version: '3'
+
+services: 
+    nats:
+        container_name: "nats1"
+        image: nats:latest
+        expose:
+            - "4222"       
+        ports:
+            - "8222:8222"
+    nats2:
+        container_name: "nats2"
+        image: nats:latest
+        command: "--port 4223 --cluster nats://0.0.0.0:6222 --routes=nats://ruser:T0pS3cr3t@nats:6222"
+    nats3:
+        container_name: "nats3"
+        image: nats:latest
+        command: "--port 4224 --cluster nats://0.0.0.0:6222 --routes=nats://ruser:T0pS3cr3t@nats:6222"
+    
+    generator:
+      container_name: generator
+      build: 
+        context: ./generator
+      depends_on:
+        - nats 
+      expose:
+        - 7070
+      ports:
+        - 7070:7070  
+      environment:  
+        NATS_SERVER_ADDR: nats://nats:4222
+        CLIENT_ID: generator 
+        SERVER_PORT: 7070
+  
+
+    qhandler:
+        container_name: qhandler
+        build: 
+          context: ./qhandler
+        depends_on:
+          - nats 
+        environment:  
+          NATS_SERVER_ADDR: nats://nats:4222
+          CLIENT_ID: qhandler 
+    
+    dispatcher:
+      container_name: dispatcher
+      build: 
+        context: ./dispatcher
+      depends_on:
+        - nats 
+      environment:  
+        NATS_SERVER_ADDR: nats://nats:4222
+        CLIENT_ID: dispatcher      
+    
+    router:
+      container_name: router
+      build: 
+        context: ./router
+      depends_on:
+        - nats 
+      environment:  
+        NATS_SERVER_ADDR: nats://nats:4222
+        CLIENT_ID: router
+          
+    station101:
+      container_name: station101
+      build: 
+        context: ./station101
+      depends_on:
+        - nats 
+      environment:  
+        NATS_SERVER_ADDR: nats://nats:4222
+        CLIENT_ID: station101
+   
+    station201:
+      container_name: station201
+      build: 
+        context: ./station201
+      depends_on:
+        - nats 
+      environment: 
+        NATS_SERVER_ADDR: nats://nats:4222
+        CLIENT_ID: station201
+
+    station301:
+      container_name: station301
+      build: 
+        context: ./station301
+      depends_on:
+        - nats 
+      environment: 
+        NATS_SERVER_ADDR: nats://nats:4222
+        CLIENT_ID: station301
+networks:
+    default:
+        driver: bridge
+             
