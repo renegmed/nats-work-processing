@@ -151,6 +151,8 @@ func subscribe(conn *Connector, dispatcher *dispatcher) {
 		task.TimeAssigned = time.Now()
 		task.Mutex.Unlock()
 
+		log.Println("Topic: Proposed.Assign.Work, task to add\n\t", task)
+
 		dispatcher.add(task)
 		ok, err := publishApprovalWorkAssignment(conn, task)
 		if err != nil {

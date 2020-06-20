@@ -10,12 +10,13 @@ import (
 	"time"
 
 	nats "github.com/nats-io/nats.go"
+	"github.com/satori/uuid"
 )
 
 type Task struct {
 	ID   string `json:"ID"`
 	Name string `json:"name"`
-	Mark bool
+	Mark bool   `json:"assigned,omitempty"`
 }
 
 type TaskResponse struct {
@@ -65,7 +66,11 @@ func subscribeToTasks(conn *Connector, tasks *Tasks) {
 
 		tasks.load(task)
 
-		resp := TaskResponse{"200121", task.ID, task.Name, "Notes from qhandler..."}
+		newUUID := uuid.NewV4()
+
+		responseID := newUUID.String()
+
+		resp := TaskResponse{responseID, task.ID, task.Name, "Notes from qhandler..."}
 		data, err := json.Marshal(resp)
 		if err == nil {
 			log.Println("Responding to Add.Task.To.Queue\n\t", resp)
@@ -76,6 +81,11 @@ func subscribeToTasks(conn *Connector, tasks *Tasks) {
 	})
 
 	conn.nc.Subscribe("All.NotStarted.Tasks", func(m *nats.Msg) {
+		data, _ := json.Marshal(tasks.notStartedList())
+		m.Respond(data)
+	})
+
+	conn.nc.Subscribe("All.Tasks", func(m *nats.Msg) {
 		data, _ := json.Marshal(tasks.list())
 		m.Respond(data)
 	})
@@ -167,6 +177,16 @@ func (t *Tasks) mark(id string) {
 		}
 	}
 	return
+}
+
+func (t *Tasks) notStartedList() []Task {
+	list := []Task{}
+	for _, task := range t.list() {
+		if !task.Mark {
+			list = append(list, task)
+		}
+	}
+	return list
 }
 
 func (t *Tasks) list() []Task {

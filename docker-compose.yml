@@ -21,14 +21,15 @@ services:
       container_name: generator
       build: 
         context: ./generator
-      depends_on:
-        - nats 
+      # depends_on:
+      #   - nats 
       expose:
         - 7070
       ports:
         - 7070:7070  
       environment:  
         NATS_SERVER_ADDR: nats://nats:4222
+        #NATS_SERVER_ADDR: nats://demo.nats.io   # nats://nats:4222
         CLIENT_ID: generator 
         SERVER_PORT: 7070
   
@@ -92,6 +93,21 @@ services:
       environment: 
         NATS_SERVER_ADDR: nats://nats:4222
         CLIENT_ID: station301
+
+    monitor:
+      container_name: monitor
+      build: 
+        context: ./monitor
+      depends_on:
+        - nats 
+      expose:
+        - 6060
+      ports:
+        - 6060:6060  
+      environment:  
+        NATS_SERVER_ADDR: nats://nats:4222
+        CLIENT_ID: monitor 
+        SERVER_PORT: 6060
 networks:
     default:
         driver: bridge

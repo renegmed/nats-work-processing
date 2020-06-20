@@ -14,8 +14,10 @@ restart:
 	docker start assigner
 .PHONY: restart
 
-tail-assigner:
-	docker logs assigner -f
+tail-monitor:
+	docker logs monitor -f
+tail-router:
+	docker logs router -f
 tail-qhandler:
 	docker logs qhandler -f
 tail-generator:
@@ -29,6 +31,10 @@ tail-station201:
 tail-station301:
 	docker logs station301 -f 
 .PHONY: tail-assigner tail-qhandler tail-generator tail-station101 tail-station201 tail-station301 
+
+
+test:
+	curl -X POST localhost:6060/test
 
 add-task:
 	curl -X POST localhost:7070/task -d '{"ID":"10001", "name":"Bore 5mm hole"}'

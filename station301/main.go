@@ -102,11 +102,13 @@ func subscribe(conn *Connector) {
 				log.Println("Error while unmarshalingApproved.Assign.Work.Station subscription")
 				return
 			}
+
+			log.Println("Accepted work:\t\n", task)
 			station.Mutex.Lock()
 			station.Task = task
 			station.Status = "working"
 			station.Mutex.Unlock()
-			m.Respond(nil)
+			m.Respond([]byte(fmt.Sprintf("work %s accepted.", task.ID)))
 
 			log.Println("Work station 101 current status\n\t", station)
 		} else {
@@ -170,6 +172,16 @@ func utils(conn *Connector) {
 		}
 
 		log.Println("Current station status", station.Status)
+	})
+
+	conn.nc.Subscribe("Util.Station.Clear."+station.ID, func(m *nats.Msg) {
+
+		station.Mutex.Lock()
+		station.Status = "available"
+		station.Task = Task{}
+		station.Mutex.Unlock()
+
+		log.Println("Current station setting\n\t ", station)
 
 	})
 }
